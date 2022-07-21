@@ -11,9 +11,7 @@ class LoginController extends Controller
     {
         {
             if (!Auth::attempt($request->only('name', 'password'))) {
-                return response()->json([
-                    'message' => 'Invalid login details'
-                ], 401);
+                abort(404, 'Invalid Login');
             }
             $user = User::where('name', $request['name'])->firstOrFail();
             $token = $user->createToken('auth_token')->plainTextToken;
@@ -26,6 +24,5 @@ class LoginController extends Controller
     public function logout(Request $request)
     {
         $request->user()->currentAccessToken()->delete();
-
     }
 }

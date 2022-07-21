@@ -15,7 +15,10 @@ class QuoteController extends Controller
      */
     public function loadQuotes() {
         Quote::truncate();
-        ImportService::importQuotes(TRUE);
+        $response = ImportService::importQuotes(TRUE);
+        if (!$response) {
+            abort(400, 'Bad request');
+        }
         $jsonResponse = Quote::all()->map(function ($quote) {
             return new QuoteResource($quote);
         });
@@ -28,16 +31,13 @@ class QuoteController extends Controller
      * @return \Illuminate\Http\JsonResponse
      */
     public function getQuotes(Request $request) {
-
-        Quote::orderBy('created_at', 'asc')
-            ->limit(1)
-            ->delete();
-        ImportService::importQuotes(FALSE);
-
+        $response = ImportService::importQuotes(FALSE);
+        if ($response) {
+            Quote::oldest()->first()->delete();
+        }
         $jsonResponse = Quote::all()->map(function ($quote) {
             return new QuoteResource($quote);
         });
-
         return response()->json($jsonResponse);
     }
 
